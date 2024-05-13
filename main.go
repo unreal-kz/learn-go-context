@@ -17,28 +17,19 @@ func main() {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
-	generator := func(dataItem interface{}, stream chan interface{}) {
-		for {
-			select {
-			case <-ctx.Done():
-				return
-			case stream <- dataItem:
-			}
-		}
-	}
-
+	generator := populate
 	func2 := genericFunc
 	func3 := genericFunc
 
 	infiniteAppels := make(chan interface{})
 	// infiniteAppels <- myArr
-	go generator(myArr, infiniteAppels)
+	go generator(ctx, myArr, infiniteAppels)
 
 	infiniteIceCreams := make(chan interface{})
-	go generator("ice cream", infiniteIceCreams)
+	go generator(ctx, "ice cream", infiniteIceCreams)
 
 	infiniteHappiness := make(chan interface{})
-	go generator("happiness", infiniteHappiness)
+	go generator(ctx, "happiness", infiniteHappiness)
 
 	wg.Add(1)
 	go func1(ctx, &wg, infiniteAppels)
@@ -51,6 +42,16 @@ func main() {
 	// for cnt < time.Second*3 {
 
 	// }
+}
+
+func populate(ctx context.Context, dataItem interface{}, stream chan interface{}) {
+	for {
+		select {
+		case <-ctx.Done():
+			return
+		case stream <- dataItem:
+		}
+	}
 }
 
 func func1(ctx context.Context, parentWG *sync.WaitGroup, stream <-chan interface{}) {
