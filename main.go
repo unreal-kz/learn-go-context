@@ -14,7 +14,10 @@ func main() {
 	log.Printf("Type %[1]T, values %[1]v\n", myArr)
 
 	var wg sync.WaitGroup
-	ctx, cancel := context.WithCancel(context.Background())
+
+	deadline := time.Now().Add(5 * time.Second)
+
+	ctx, cancel := context.WithDeadline(context.Background(), deadline)
 	defer cancel()
 
 	generator := populate
@@ -37,11 +40,8 @@ func main() {
 	go func2(ctx, &wg, infiniteIceCreams)
 	wg.Add(1)
 	go func3(ctx, &wg, infiniteHappiness)
+	// <-ctx.Done()
 	wg.Wait()
-	// var cnt float64
-	// for cnt < time.Second*3 {
-
-	// }
 }
 
 func populate(ctx context.Context, dataItem interface{}, stream chan interface{}) {
@@ -74,7 +74,7 @@ func func1(ctx context.Context, parentWG *sync.WaitGroup, stream <-chan interfac
 		}
 	}
 
-	newCtx, cancel := context.WithTimeout(ctx, time.Second*1)
+	newCtx, cancel := context.WithTimeout(ctx, time.Second*2)
 	defer cancel()
 
 	for i := 0; i < 3; i++ {
